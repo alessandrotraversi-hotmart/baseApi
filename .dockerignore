@@ -1,0 +1,13 @@
+terraform/
+.dockerignore
+Jenkinsfile
+.gitignore
+.editorconfig
+README.md
+Dockerfile
+.git
+.npmrc
+.terraform/
+kubeconfig-buildstaging
+template.tf
+tftemplate.py

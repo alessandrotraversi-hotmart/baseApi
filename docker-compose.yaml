@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  postgres:
+    container_name: api-template-postgres
+    image: postgres:latest
+    tty: true
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - ./local_data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - api-template-network
+
+  redis:
+    container_name: api-template-redis
+    image: redis:6.2
+    ports:
+      - "6379:6379"
+    networks:
+      - api-template-network
+    volumes:
+      - ./local_data/redis_data:/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.0
+    container_name: api-template-elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - http.cors.enabled=true
+      - http.cors.allow-origin="*"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./local_data/elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - api-template-network
+
+  kibana:
+    container_name: api-template-kibana
+    image: docker.elastic.co/kibana/kibana:7.13.0
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    networks:
+      - api-template-network
+
+  zipkin:
+    container_name: api-template-zipkin
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - api-template-network
+
+  rabbitmq:
+    container_name: api-template-rabbitmq
+    image: rabbitmq:3-management-alpine
+    restart: "always"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./local_data/rabbitmq_data:/usr/share/rabbitmq/data
+    environment:
+      RABBITMQ_DEFAULT_USER: usuario_rabbitmq
+      RABBITMQ_DEFAULT_PASS: senha_rabbitmq
+    networks:
+      - api-template-network
+
+networks:
+  api-template-network:
+    driver: bridge
